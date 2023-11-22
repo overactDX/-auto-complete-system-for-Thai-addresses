@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, ChangeEvent, useEffect } from 'react';
-import addressData from '../../data/th-address.json'; // import ข้อมูลรหัสไปรษณีย์และข้อมูลที่เกี่ยวข้อง
+import addressData from '../../data/th-address.json';
 
 interface SubDistrict {
     subDistrictId: string;
@@ -27,6 +27,17 @@ interface Address {
     districtList: District[];
 }
 
+const getProvincesData = (data: Address[]): Province[] =>
+    data.map((address: Address) => address.provinceList).flat();
+
+const getDistrictsData = (data: Address[]): District[] =>
+    data.map((address: Address) => address.districtList).flat();
+
+const getCorrespondingZipCode = (data: Address[], subDistrictId: string): string | undefined =>
+    data.find((item: Address) =>
+        item.subDistrictList.some((subDistrict) => subDistrict.subDistrictId === subDistrictId)
+    )?.zipCode;
+
 const AutoComplete: React.FC = () => {
     const [inputValue, setInputValue] = useState<string>('');
     const [suggestions, setSuggestions] = useState<SubDistrict[]>([]);
@@ -34,9 +45,8 @@ const AutoComplete: React.FC = () => {
     const [districts, setDistricts] = useState<District[]>([]);
 
     useEffect(() => {
-        // Fetch provinces and districts data from addressData or use your fetching mechanism
-        const provincesData = addressData.map((address: Address) => address.provinceList).flat();
-        const districtsData = addressData.map((address: Address) => address.districtList).flat();
+        const provincesData = getProvincesData(addressData);
+        const districtsData = getDistrictsData(addressData);
 
         setProvinces(provincesData);
         setDistricts(districtsData);
@@ -46,20 +56,14 @@ const AutoComplete: React.FC = () => {
         const value = e.target.value;
         setInputValue(value);
 
-        // Filter suggestions based on zip code input value
-        const filteredAddresses = addressData.find(
-            (address: Address) => address.zipCode === value
-        );
+        const filteredAddresses = addressData.find((address: Address) => address.zipCode === value);
 
-        // If address with matching zip code is found, set its subDistrictList as suggestions
         if (filteredAddresses) {
             setSuggestions(filteredAddresses.subDistrictList);
         } else {
-            setSuggestions([]); // Clear suggestions if no matching zip code is found
+            setSuggestions([]);
         }
     };
-
-
 
     return (
         <div>
@@ -67,23 +71,20 @@ const AutoComplete: React.FC = () => {
                 type="text"
                 value={inputValue}
                 onChange={handleInputChange}
-                placeholder="กรอกรหัสไปรษณีย์ . . ."
+                placeholder="กรอกรหัสไปรษณีย์ ..."
             />
             <ul>
                 {suggestions.map((address: SubDistrict) => {
-                    const correspondingZipCode = addressData.find((data: Address) =>
-                        data.subDistrictList.some((subDistrict) => subDistrict.subDistrictId === address.subDistrictId)
-                    )?.zipCode;
+                    const correspondingZipCode = getCorrespondingZipCode(addressData, address.subDistrictId);
 
                     return (
                         <li key={address.subDistrictId}>
-                            {`ตำบล : ${address.subDistrictName}, อำเภอ: ${districts.find((dist) => dist.districtId === address.districtId)?.districtName || 'N/A'
-                                }, จังหวัด: ${provinces.find((prov) => prov.provinceId === address.provinceId)?.provinceName || 'N/A'
-                                } , ไปรษณีย์: ${correspondingZipCode || 'N/A'},`}
+                            {`ตำบล : ${address.subDistrictName}, อำเภอ : ${districts.find((dist) => dist.districtId === address.districtId)?.districtName || 'N/A'
+                                }, จังหวัด : ${provinces.find((prov) => prov.provinceId === address.provinceId)?.provinceName || 'N/A'
+                                }, รหัสไปรษณีย์: ${correspondingZipCode || 'N/A'}`}
                         </li>
                     );
                 })}
-
             </ul>
         </div>
     );
