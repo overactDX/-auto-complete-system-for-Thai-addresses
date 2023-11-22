@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import addressData from '../../data/th-address.json';
+import InputForm from './InputAddress';
 
 interface SubDistrict {
     subDistrictId: string;
@@ -43,6 +44,7 @@ const AutoComplete: React.FC = () => {
     const [suggestions, setSuggestions] = useState<SubDistrict[]>([]);
     const [provinces, setProvinces] = useState<Province[]>([]);
     const [districts, setDistricts] = useState<District[]>([]);
+    const [selectedData, setSelectedData] = useState<string>(''); // เพิ่ม state สำหรับเก็บ selectedData
 
     useEffect(() => {
         const provincesData = getProvincesData(addressData);
@@ -65,8 +67,12 @@ const AutoComplete: React.FC = () => {
         }
     };
 
+    const selectedProvinceList = (selectedData: string) => {
+        setSelectedData(selectedData); 
+    };
+
     return (
-        <div>
+        <div >
             <input
                 type="text"
                 value={inputValue}
@@ -76,16 +82,24 @@ const AutoComplete: React.FC = () => {
             <ul>
                 {suggestions.map((address: SubDistrict) => {
                     const correspondingZipCode = getCorrespondingZipCode(addressData, address.subDistrictId);
+                    const selectedData = `ตำบล : ${address.subDistrictName}, อำเภอ : ${districts.find((dist) => dist.districtId === address.districtId)?.districtName || 'N/A'
+                        }, จังหวัด : ${provinces.find((prov) => prov.provinceId === address.provinceId)?.provinceName || 'N/A'
+                        }, รหัสไปรษณีย์: ${correspondingZipCode || 'N/A'}`;
 
                     return (
-                        <li key={address.subDistrictId}>
-                            {`ตำบล : ${address.subDistrictName}, อำเภอ : ${districts.find((dist) => dist.districtId === address.districtId)?.districtName || 'N/A'
-                                }, จังหวัด : ${provinces.find((prov) => prov.provinceId === address.provinceId)?.provinceName || 'N/A'
-                                }, รหัสไปรษณีย์: ${correspondingZipCode || 'N/A'}`}
+                        <li
+                            key={address.subDistrictId}
+                            onClick={() => selectedProvinceList(selectedData)}
+                        >
+                            {selectedData}
                         </li>
                     );
+
                 })}
             </ul>
+
+
+            <InputForm selectedData={selectedData} /> 
         </div>
     );
 };
