@@ -68,7 +68,7 @@ const AutoComplete: React.FC = () => {
     };
 
     const selectedProvinceList = (selectedData: string) => {
-        setSelectedData(selectedData); 
+        setSelectedData(selectedData);
     };
 
     return (
@@ -79,6 +79,7 @@ const AutoComplete: React.FC = () => {
                 onChange={handleInputChange}
                 placeholder="กรอกรหัสไปรษณีย์ ..."
             />
+
             <ul>
                 {suggestions.map((address: SubDistrict) => {
                     const correspondingZipCode = getCorrespondingZipCode(addressData, address.subDistrictId);
@@ -99,7 +100,7 @@ const AutoComplete: React.FC = () => {
             </ul>
 
 
-            <InputForm selectedData={selectedData} /> 
+            <InputForm selectedData={selectedData} />
         </div>
     );
 };
